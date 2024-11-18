@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terrajómetro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 2.5em;
+      color: #ff5733;
+    }
+
+    #container {
+      margin-top: 20px;
+    }
+
+    .gauge {
+      position: relative;
+      width: 300px;
+      height: 150px;
+      margin: 20px auto;
+    }
+
+    .gauge .dial {
+      fill: #ddd;
+    }
+
+    .gauge .needle {
+      fill: #ff5733;
+      stroke: #ff5733;
+      stroke-width: 3;
+    }
+
+    .gauge .text {
+      font-size: 0.8em;
+      fill: #333;
+      text-anchor: middle;
+    }
+
+    .result {
+      display: none;
+      margin-top: 20px;
+      font-size: 1.5em;
+      color: #ff5733;
+    }
+
+    #uploaded-image {
+      margin-top: 20px;
+      max-width: 300px;
+      max-height: 300px;
+      display: none;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #ff5733;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    button:hover {
+      background-color: #ff6f4d;
+    }
+
+    #file-buttons {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>¡Terrajómetro!</h1>
+  <p>Elegí una opción para medir tu nivel de terraja:</p>
+  <div id="container">
+    <!-- Botones para cámara y archivo -->
+    <div id="file-buttons">
+      <button id="camera-btn">Usar cámara</button>
+      <button id="file-btn">Seleccionar archivo</button>
+    </div>
+
+    <!-- Entrada oculta para archivo y cámara -->
+    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
+    <input type="file" id="file-input" accept="image/*" style="display: none;">
+
+    <img id="uploaded-image" alt="Imagen seleccionada">
+    <div class="gauge">
+      <svg viewBox="0 0 300 150">
+        <path d="M10,140 A140,140 0 0,1 290,140" class="dial" stroke="black" stroke-width="2" fill="#eee"></path>
+        <line x1="150" y1="140" x2="150" y2="50" class="needle"></line>
+        <text x="50" y="140" class="text">0</text>
+        <text x="150" y="30" class="text">100</text>
+        <text x="250" y="140" class="text">200</text>
+      </svg>
+    </div>
+    <div class="result" id="result">
+      Tu nivel de terraja es: <span id="terraja-score"></span>%
+      <p id="message"></p>
+    </div>
+    <button id="start-btn" disabled>Medir nivel</button>
+  </div>
+
+  <script>
+    const cameraInput = document.getElementById("camera-input");
+    const fileInput = document.getElementById("file-input");
+    const uploadedImage = document.getElementById("uploaded-image");
+    const startButton = document.getElementById("start-btn");
+    const needle = document.querySelector(".needle");
+    const resultDiv = document.getElementById("result");
+    const terrajaScore = document.getElementById("terraja-score");
+    const message = document.getElementById("message");
+
+    // Frases aleatorias relacionadas con "terraja"
+    const phrases = [
+      "¡Nivel tan alto que ya estás para el termo de piel y la bombilla dorada!",
+      "¡Te pasaste! Tus ojotas fluorescentes brillan en todo el barrio.",
+      "¡Alto nivel de terraja! Seguro tenés un sticker de equipo de fútbol en el auto.",
+      "¡Exagerado! Tus cadenas de oro combinan perfecto con tus bermudas.",
+      "¡Nivel épico! Ya estás para vender pan casero por Instagram.",
+      "¡Máximo nivel! Seguro llevás la reposera al estadio.",
+      "¡Impresionante! Tu amor por las luces de neón es insuperable.",
+      "¡Nivel de terraja supremo! La radio siempre en AM para escuchar fútbol."
+    ];
+
+    // Mostrar la imagen seleccionada o tomada
+    function handleImageUpload(input) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          uploadedImage.src = e.target.result;
+          uploadedImage.style.display = "block";
+          startButton.disabled = false; // Habilitar el botón "Medir nivel"
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Botón de cámara
+    document.getElementById("camera-btn").addEventListener("click", () => {
+      cameraInput.click();
+    });
+
+    // Botón de archivo
+    document.getElementById("file-btn").addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    // Manejar carga de cámara
+    cameraInput.addEventListener("change", function () {
+      handleImageUpload(cameraInput);
+    });
+
+    // Manejar carga de archivo
+    fileInput.addEventListener("change", function () {
+      handleImageUpload(fileInput);
+    });
+
+    // Botón de medir nivel
+    startButton.addEventListener("click", function () {
+      // Animación del velocímetro
+      let rotation = 0;
+      const interval = setInterval(() => {
+        if (rotation >= 120) { // Detener al máximo
+          clearInterval(interval);
+
+          // Mostrar resultado
+          const score = Math.floor(Math.random() * 21) + 80; // Siempre entre 80% y 100%
+          terrajaScore.textContent = score;
+          message.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+          resultDiv.style.display = "block";
+        } else {
+          rotation += 5;
+          needle.style.transform = `rotate(${rotation - 90}deg)`; // Ajustar desde -90 grados
+          needle.style.transformOrigin = "50% 140px";
+        }
+      }, 50);
+    });
+  </script>
+</body>
+</html>
+
